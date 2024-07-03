@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  youtube-data-retrieval:
+    build: ./youtube-data-retrieval
+    environment:
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+    ports:
+      - "8080:8080"
+
+  data-processing:
+    build: ./data-processing
+    environment:
+      - CLOUD_SQL_CONNECTION_NAME=${CLOUD_SQL_CONNECTION_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    ports:
+      - "8081:8080"
