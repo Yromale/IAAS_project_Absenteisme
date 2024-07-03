@@ -34,3 +34,5 @@ jobs:
       run: |
         gcloud auth activate-service-account --key-file ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         gcloud run deploy data-processing --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/data-processing:latest --region ${{ secrets.GCP_REGION }} --platform managed --allow-unauthenticated
+
+        
