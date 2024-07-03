@@ -1,0 +1,7 @@
+flask
+requests
+google-cloud-storage
+google-cloud-secret-manager
+python-dotenv
+sqlalchemy
+psycopg2-binary
