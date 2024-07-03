@@ -26,6 +26,12 @@ jobs:
         username: _json_key
         password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
+    - name: Debug GitHub Actions environment
+      run: |
+        echo "GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}"
+        echo "GCP_REGION: ${{ secrets.GCP_REGION }}"
+        echo "GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}"
+
     - name: Build and push Docker image
       run: |
         docker buildx build --platform linux/amd64 --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/youtube-data-retrieval:latest --push .
@@ -35,4 +41,3 @@ jobs:
         gcloud auth activate-service-account --key-file ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         gcloud run deploy youtube-data-retrieval --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/youtube-data-retrieval:latest --region ${{ secrets.GCP_REGION }} --platform managed --allow-unauthenticated
 
-        
