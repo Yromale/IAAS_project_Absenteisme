@@ -7,7 +7,6 @@ This project consists of two main services that retrieve and process YouTube dat
 - [Overview](#overview)
 - [Setup](#setup)
   - [Prerequisites](#prerequisites)
-  - [Environment Variables](#environment-variables)
   - [Google Cloud Setup](#google-cloud-setup)
   - [Local Development Setup](#local-development-setup)
 - [Services](#services)
@@ -31,18 +30,6 @@ This project is composed of two pipelines:
 - Docker and Docker Compose installed
 - `gcloud` CLI installed and configured
 
-### Environment Variables
-
-Create a `.env` file with the following content:
-
-```
-YOUTUBE_API_KEY=your_youtube_api_key
-GCS_BUCKET_NAME=your_gcs_bucket_name
-CLOUD_SQL_CONNECTION_NAME=your_project:your_region
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=your_db_name
-```
 ### Google Cloud Setup
 
 1. **Enable Required APIs:**
