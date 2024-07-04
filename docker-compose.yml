@@ -8,9 +8,8 @@ services:
 
   youtube-data-retrieval:
     build: ./retrieval
-    environment:
-      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
-      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+    env_file:
+      - environnement.env
     ports:
       - "8080:8080"
     volumes:
@@ -18,11 +17,8 @@ services:
 
   data-processing:
     build: ./process
-    environment:
-      - CLOUD_SQL_CONNECTION_NAME=${CLOUD_SQL_CONNECTION_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
+    env_file:
+      - environnement.env
     ports:
       - "8081:8080"
     volumes:
@@ -31,6 +27,8 @@ services:
   celery-worker:
     build: .
     command: celery -A tasks worker --loglevel=info
+    env_file:
+      - environnement.env
     volumes:
       - .:/app
     depends_on:
@@ -41,6 +39,8 @@ services:
   celery-beat:
     build: .
     command: celery -A tasks beat --loglevel=info
+    env_file:
+      - environnement.env
     volumes:
       - .:/app
     depends_on:
