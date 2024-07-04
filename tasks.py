@@ -2,7 +2,7 @@ from celery import Celery
 import subprocess
 
 app = Celery('tasks')
-app.config_from_object('celeryconfig')
+app.config_from_object('celery_config')
 
 @app.task
 def data_processing():
