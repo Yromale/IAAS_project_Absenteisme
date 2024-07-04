@@ -30,6 +30,12 @@ jobs:
       run: |
         docker buildx build --platform linux/amd64 --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/youtube-data-retrieval:latest --push .
 
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
     - name: Install Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
       with:
