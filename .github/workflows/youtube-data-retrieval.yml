@@ -32,5 +32,5 @@ jobs:
 
     - name: Deploy to Cloud Run
       run: |
-        gcloud run deploy youtube-data-retrieval --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/youtube-data-retrieval:latest --region ${{ secrets.GCP_REGION }} --platform managed --allow-unauthenticated
+        gcloud run deploy youtube-data-retrieval --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/youtube-data-retrieval:latest --region ${{ secrets.GCP_REGION }} --add-cloudsql-instances ${{ secrets.GCP_CLOUDSQL }} --platform managed   --set-env-vars=PROJECT_ID=${{ secrets.GCP_PROJECT_ID }} --allow-unauthenticated
 
