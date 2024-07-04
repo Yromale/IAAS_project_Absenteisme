@@ -25,6 +25,7 @@ DB_USER = access_secret_version('DB_USER')
 DB_PASSWORD = access_secret_version('DB_PASSWORD')
 DB_NAME = access_secret_version('DB_NAME')
 
+# Create a connection to the Cloud SQL database
 DATABASE_URI = (
     f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
     f"@/{DB_NAME}?host=/cloudsql/{CLOUD_SQL_CONNECTION_NAME}"
@@ -59,6 +60,7 @@ def main():
 
     return "Data processing complete"
 
+# Download a file from GCS
 def download_from_gcs(filename):
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
@@ -66,10 +68,9 @@ def download_from_gcs(filename):
     data = blob.download_as_string()
     return data.decode('utf-8')
 
+# Insert data into the SQL database
 def insert_data_to_sql(data, channel_name):
     conn = engine.connect()
-
-    
     reader = csv.DictReader(data.splitlines())
     for row in reader:
         conn.execute(
@@ -96,7 +97,7 @@ def insert_data_to_sql(data, channel_name):
     conn.commit()
     conn.close()
 
-
+# Insert channel data into the SQL database
 def insert_channel_data_to_sql(data, channel_name):
     conn = engine.connect()
     reader = csv.DictReader(data.splitlines())

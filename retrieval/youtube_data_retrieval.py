@@ -62,6 +62,7 @@ def main():
 
     return "Data retrieval complete"
 
+# Function to retrieve data from YouTube API
 def get_youtube_data(channel_id):
     url = f"https://www.googleapis.com/youtube/v3/search?key={API_KEY}&channelId={channel_id}&part=snippet,id&order=date&maxResults=50"
     data = []
@@ -75,6 +76,7 @@ def get_youtube_data(channel_id):
         break  # Remove this line to retrieve all videos
     return data
 
+# Function to retrieve video statistics
 def get_video_stats(video_id):
     url = f"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={video_id}&key={API_KEY}"
     response = requests.get(url)
@@ -84,6 +86,7 @@ def get_video_stats(video_id):
         return stats.get('likeCount', '0'), stats.get('viewCount', '0'), stats.get('commentCount', '0')
     return '0', '0', '0'
 
+# Function to retrieve channel data
 def get_channel_data(channel_id):
     url = f"https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id={channel_id}&key={API_KEY}"
     response = requests.get(url)
@@ -100,6 +103,7 @@ def get_channel_data(channel_id):
         }
     return {}
 
+# Function to save channel data to CSV file
 def save_channel_data(channel_data):
     for i in channel_data:
         filename = f"{i['channel_name']}_channel_data.csv"
@@ -117,7 +121,8 @@ def save_channel_data(channel_data):
             })
         with open(filename, 'r') as file:
             upload_to_gcs(filename, file.read())
-
+            
+# Function to upload file to Google Cloud Storage
 def upload_to_gcs(filename, data):
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
