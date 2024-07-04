@@ -26,11 +26,6 @@ jobs:
         username: _json_key
         password: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
-    - name: Debug GitHub Actions environment
-      run: |
-        ls -la $GITHUB_WORKSPACE
-        ls -la $GITHUB_WORKSPACE/${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-
     - name: Build and push Docker image
       run: |
         docker buildx build --platform linux/amd64 --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/youtube-data-retrieval:latest --push .
