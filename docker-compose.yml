@@ -9,7 +9,7 @@ services:
   youtube-data-retrieval:
     build: ./retrieval
     env_file:
-      - environnement.env
+      - environment.env
     ports:
       - "8080:8080"
     volumes:
@@ -18,7 +18,7 @@ services:
   data-processing:
     build: ./process
     env_file:
-      - environnement.env
+      - environment.env
     ports:
       - "8081:8080"
     volumes:
@@ -28,7 +28,7 @@ services:
     build: .
     command: celery -A tasks worker --loglevel=info
     env_file:
-      - environnement.env
+      - environment.env
     volumes:
       - .:/app
     depends_on:
@@ -40,7 +40,7 @@ services:
     build: .
     command: celery -A tasks beat --loglevel=info
     env_file:
-      - environnement.env
+      - environment.env
     volumes:
       - .:/app
     depends_on:
