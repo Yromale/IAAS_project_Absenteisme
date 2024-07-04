@@ -70,7 +70,7 @@ This project is composed of two pipelines:
 1. **Clone the Repository:**
 
     ```bash
-    git clone https://github.com/your-repo/youtube-data-pipeline.git
+    git clone https://github.com/Yromale/IAAS_project.git
     cd youtube-data-pipeline
     ```
 
@@ -91,7 +91,7 @@ This service fetches data from YouTube and writes it to Google Cloud Storage.
 1. **Build the Docker Image:**
 
     ```bash
-    docker build -t youtube-data-retrieval:latest -f Dockerfile.youtube_data_retrieval .
+    docker build -t youtube-data-retrieval:latest -f Dockerfile.youtube_data_retrieval ./retrieval
     ```
 
 2. **Deploy to Cloud Run:**
@@ -109,7 +109,7 @@ This service reads data from Google Cloud Storage and writes it to a PostgreSQL 
 1. **Build the Docker Image:**
 
     ```bash
-    docker build -t data-processing:latest -f Dockerfile.data_processing .
+    docker build -t data-processing:latest -f Dockerfile.data_processing ./process
     ```
 
 2. **Deploy to Cloud Run:**
