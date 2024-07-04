@@ -31,9 +31,6 @@ jobs:
         docker buildx build --platform linux/amd64 --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/youtube-data-retrieval:latest --push .
 
     - name: Deploy to Cloud Run
-      env:
-        GOOGLE_APPLICATION_CREDENTIALS: $GITHUB_WORKSPACE/${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
       run: |
-        gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS
         gcloud run deploy youtube-data-retrieval --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/youtube-data-retrieval:latest --region ${{ secrets.GCP_REGION }} --platform managed --allow-unauthenticated
 
