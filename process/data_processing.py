@@ -69,10 +69,11 @@ def main():
         status = "failed"
         print(f"Error: {e}")
 
-    end_time = datetime.now()
+    finally:
+        end_time = datetime.now()
 
-    # Insert metadata into ImportTask table
-    insert_import_task(start_time, end_time, created_videos, updated_videos, status)
+        # Insert metadata into ImportTask table
+        insert_import_task(start_time, end_time, created_videos, updated_videos, status)
 
     return "Data processing complete"
 
