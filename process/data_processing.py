@@ -1,10 +1,14 @@
 import os
 import csv
+import logging
 from datetime import datetime
 from sqlalchemy import create_engine, text
 from google.cloud import storage, secretmanager
 from flask import Flask
 from dotenv import load_dotenv
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -67,13 +71,16 @@ def main():
 
     except Exception as e:
         status = "failed"
-        print(f"Error: {e}")
+        logging.error(f"Error during data processing: {e}")
 
-    finally:
-        end_time = datetime.now()
+    end_time = datetime.now()
 
-        # Insert metadata into ImportTask table
+    # Insert metadata into ImportTask table
+    try:
         insert_import_task(start_time, end_time, created_videos, updated_videos, status)
+    except Exception as e:
+        logging.error(f"Error inserting import task: {e}")
+        status = "failed"
 
     return "Data processing complete"
 
@@ -130,8 +137,8 @@ def insert_channel_data_to_sql(data, channel_name):
         # If the channel data already exists, update the existing record
         conn.execute(
             text("""
-                INSERT INTO channel (channel_id,channel_name ,subscriber_count, video_count, view_count)
-                VALUES (:channel_id, :channel_name ,:subscriber_count, :video_count, :view_count)
+                INSERT INTO channel (channel_id, channel_name, subscriber_count, video_count, view_count)
+                VALUES (:channel_id, :channel_name, :subscriber_count, :video_count, :view_count)
                 ON CONFLICT (channel_id) DO UPDATE SET
                     subscriber_count = EXCLUDED.subscriber_count,
                     video_count = EXCLUDED.video_count,
