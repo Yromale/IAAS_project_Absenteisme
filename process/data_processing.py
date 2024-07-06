@@ -129,8 +129,8 @@ def insert_channel_data_to_sql(data, channel_name):
         # If the channel data already exists, update the existing record
         conn.execute(
             text("""
-                INSERT INTO channel (channel_id, channel_name, subscriber_count, video_count, view_count)
-                VALUES (:channel_id, :channel_name, :subscriber_count, :video_count, :view_count)
+                INSERT INTO channel (channel_id,channel_name ,subscriber_count, video_count, view_count)
+                VALUES (:channel_id, :channel_name ,:subscriber_count, :video_count, :view_count)
                 ON CONFLICT (channel_id) DO UPDATE SET
                     subscriber_count = EXCLUDED.subscriber_count,
                     video_count = EXCLUDED.video_count,
@@ -152,7 +152,7 @@ def insert_import_task(start_time, end_time, created_videos, updated_videos, sta
     conn = engine.connect()
     conn.execute(
         text("""
-            INSERT INTO importtask (date_start, date_end, created_videos, updated_videos, status)
+            INSERT INTO import_task (date_start, date_end, created_videos, updated_videos, status)
             VALUES (:date_start, :date_end, :created_videos, :updated_videos, :status)
         """),
         {
