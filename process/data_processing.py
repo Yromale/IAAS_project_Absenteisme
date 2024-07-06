@@ -37,26 +37,42 @@ app = Flask(__name__)
 
 @app.route('/')
 def main():
-    
-    channel_filenames = [
-        'Outdoor Boys_channel_data.csv',
-        'PacificSound3003_channel_data.csv',
-        'I did a thing_channel_data.csv'
-    ]
+    start_time = datetime.now()
+    created_videos = 0
+    updated_videos = 0
+    status = "success"
 
-    for channel_filename in channel_filenames:
-        data = download_from_gcs(channel_filename)
-        insert_channel_data_to_sql(data, channel_filename.split('_')[0])
+    try:
+        channel_filenames = [
+            'Outdoor Boys_channel_data.csv',
+            'PacificSound3003_channel_data.csv',
+            'I did a thing_channel_data.csv'
+        ]
 
-    filenames = [
-        'OutdoorBoys_data.csv',
-        'pacificsound3003_data.csv',
-        'Ididathing_data.csv'
-    ]
-    
-    for filename in filenames:
-        data = download_from_gcs(filename)
-        insert_data_to_sql(data, filename.split('_')[0])
+        for channel_filename in channel_filenames:
+            data = download_from_gcs(channel_filename)
+            insert_channel_data_to_sql(data, channel_filename.split('_')[0])
+
+        filenames = [
+            'OutdoorBoys_data.csv',
+            'pacificsound3003_data.csv',
+            'Ididathing_data.csv'
+        ]
+
+        for filename in filenames:
+            data = download_from_gcs(filename)
+            created, updated = insert_data_to_sql(data, filename.split('_')[0])
+            created_videos += created
+            updated_videos += updated
+
+    except Exception as e:
+        status = "failed"
+        print(f"Error: {e}")
+
+    end_time = datetime.now()
+
+    # Insert metadata into ImportTask table
+    insert_import_task(start_time, end_time, created_videos, updated_videos, status)
 
     return "Data processing complete"
 
@@ -72,8 +88,10 @@ def download_from_gcs(filename):
 def insert_data_to_sql(data, channel_name):
     conn = engine.connect()
     reader = csv.DictReader(data.splitlines())
+    created_videos = 0
+    updated_videos = 0
     for row in reader:
-        conn.execute(
+        result = conn.execute(
             text("""
                 INSERT INTO video (video_id, title, description, published_at, likes, views)
                 VALUES (:video_id, :title, :description, :published_at, :likes, :views)
@@ -83,6 +101,7 @@ def insert_data_to_sql(data, channel_name):
                     published_at = EXCLUDED.published_at,
                     likes = EXCLUDED.likes,
                     views = EXCLUDED.views
+                RETURNING (xmax = 0) AS inserted
             """),
             {
                 'video_id': row['videoId'],
@@ -93,9 +112,14 @@ def insert_data_to_sql(data, channel_name):
                 'views': row['views']
             }
         )
-    
+        if result.fetchone()['inserted']:
+            created_videos += 1
+        else:
+            updated_videos += 1
+
     conn.commit()
     conn.close()
+    return created_videos, updated_videos
 
 # Insert channel data into the SQL database
 def insert_channel_data_to_sql(data, channel_name):
@@ -105,8 +129,8 @@ def insert_channel_data_to_sql(data, channel_name):
         # If the channel data already exists, update the existing record
         conn.execute(
             text("""
-                INSERT INTO channel (channel_id,channel_name ,subscriber_count, video_count, view_count)
-                VALUES (:channel_id, :channel_name ,:subscriber_count, :video_count, :view_count)
+                INSERT INTO channel (channel_id, channel_name, subscriber_count, video_count, view_count)
+                VALUES (:channel_id, :channel_name, :subscriber_count, :video_count, :view_count)
                 ON CONFLICT (channel_id) DO UPDATE SET
                     subscriber_count = EXCLUDED.subscriber_count,
                     video_count = EXCLUDED.video_count,
@@ -120,6 +144,25 @@ def insert_channel_data_to_sql(data, channel_name):
                 'view_count': row['view_count']
             }
         )
+    conn.commit()
+    conn.close()
+
+# Insert metadata into ImportTask table
+def insert_import_task(start_time, end_time, created_videos, updated_videos, status):
+    conn = engine.connect()
+    conn.execute(
+        text("""
+            INSERT INTO import_task (date_start, date_end, created_videos, updated_videos, status)
+            VALUES (:date_start, :date_end, :created_videos, :updated_videos, :status)
+        """),
+        {
+            'date_start': start_time,
+            'date_end': end_time,
+            'created_videos': created_videos,
+            'updated_videos': updated_videos,
+            'status': status
+        }
+    )
     conn.commit()
     conn.close()
 
