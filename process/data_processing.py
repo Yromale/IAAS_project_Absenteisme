@@ -152,7 +152,7 @@ def insert_import_task(start_time, end_time, created_videos, updated_videos, sta
     conn = engine.connect()
     conn.execute(
         text("""
-            INSERT INTO import_task (date_start, date_end, created_videos, updated_videos, status)
+            INSERT INTO importtask (date_start, date_end, created_videos, updated_videos, status)
             VALUES (:date_start, :date_end, :created_videos, :updated_videos, :status)
         """),
         {
