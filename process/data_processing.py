@@ -99,7 +99,12 @@ def insert_data_to_sql(data, channel_name):
     created_videos = 0
     updated_videos = 0
     for row in reader:
-        result = conn.execute(
+        # Count the number of rows before inserting or updating
+        count_before = conn.execute(
+            text("SELECT COUNT(*) FROM video")
+        ).fetchone()[0]
+
+        conn.execute(
             text("""
                 INSERT INTO video (video_id, title, description, published_at, likes, views)
                 VALUES (:video_id, :title, :description, :published_at, :likes, :views)
@@ -109,7 +114,6 @@ def insert_data_to_sql(data, channel_name):
                     published_at = EXCLUDED.published_at,
                     likes = EXCLUDED.likes,
                     views = EXCLUDED.views
-                RETURNING (xmax = 0) AS inserted
             """),
             {
                 'video_id': row['videoId'],
@@ -119,8 +123,15 @@ def insert_data_to_sql(data, channel_name):
                 'likes': row['likes'],
                 'views': row['views']
             }
-        ).fetchone()
-        if result:
+        )
+
+        # Count the number of rows after inserting or updating
+        count_after = conn.execute(
+            text("SELECT COUNT(*) FROM video")
+        ).fetchone()[0]
+
+        # If the number of rows increased, a new record was created
+        if count_after > count_before:
             created_videos += 1
         else:
             updated_videos += 1
