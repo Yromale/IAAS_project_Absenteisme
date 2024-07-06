@@ -119,8 +119,8 @@ def insert_data_to_sql(data, channel_name):
                 'likes': row['likes'],
                 'views': row['views']
             }
-        )
-        if result.fetchone()['inserted']:
+        ).fetchone()
+        if result:
             created_videos += 1
         else:
             updated_videos += 1
