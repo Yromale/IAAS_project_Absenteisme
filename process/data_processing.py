@@ -2,16 +2,13 @@ import os
 import csv
 import logging
 from datetime import datetime
-from sqlalchemy import create_engine, text
-from google.cloud import storage, secretmanager
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, text
 from flask import Flask
 from dotenv import load_dotenv
+from google.cloud import storage, secretmanager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-
-# Load environment variables from .env file
-load_dotenv()
 
 # Create a Secret Manager client
 secret_client = secretmanager.SecretManagerServiceClient()
@@ -35,6 +32,12 @@ DATABASE_URI = (
     f"@/{DB_NAME}?host=/cloudsql/{CLOUD_SQL_CONNECTION_NAME}"
 )
 
+
+DATABASE_URI = (
+    f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
+    f"@/{DB_NAME}?host=/cloudsql/{CLOUD_SQL_CONNECTION_NAME}"
+)
+
 engine = create_engine(DATABASE_URI)
 
 app = Flask(__name__)
@@ -48,9 +51,9 @@ def main():
 
     try:
         channel_filenames = [
-            'Outdoor Boys_channel_data.csv',
-            'PacificSound3003_channel_data.csv',
-            'I did a thing_channel_data.csv'
+            'Data/Outdoor Boys_channel_data.csv',
+            'Data/PacificSound3003_channel_data.csv',
+            'Data/I did a thing_channel_data.csv'
         ]
 
         for channel_filename in channel_filenames:
@@ -58,9 +61,9 @@ def main():
             insert_channel_data_to_sql(data, channel_filename.split('_')[0])
 
         filenames = [
-            'OutdoorBoys_data.csv',
-            'pacificsound3003_data.csv',
-            'Ididathing_data.csv'
+            'Data/OutdoorBoys_data.csv',
+            'Data/pacificsound3003_data.csv',
+            'Data/Ididathing_data.csv'
         ]
 
         for filename in filenames:
@@ -84,7 +87,7 @@ def main():
 
     return "Data processing complete"
 
-# Download a file from GCS
+# Function to download a file from GCS
 def download_from_gcs(filename):
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
@@ -92,7 +95,7 @@ def download_from_gcs(filename):
     data = blob.download_as_string()
     return data.decode('utf-8')
 
-# Insert data into the SQL database
+# Function to insert data into the SQL database
 def insert_data_to_sql(data, channel_name):
     conn = engine.connect()
     reader = csv.DictReader(data.splitlines())
@@ -140,7 +143,7 @@ def insert_data_to_sql(data, channel_name):
     conn.close()
     return created_videos, updated_videos
 
-# Insert channel data into the SQL database
+# Function to insert channel data into the SQL database
 def insert_channel_data_to_sql(data, channel_name):
     conn = engine.connect()
     reader = csv.DictReader(data.splitlines())
@@ -166,7 +169,7 @@ def insert_channel_data_to_sql(data, channel_name):
     conn.commit()
     conn.close()
 
-# Insert metadata into ImportTask table
+# Function to insert metadata into ImportTask table
 def insert_import_task(start_time, end_time, created_videos, updated_videos, status):
     conn = engine.connect()
     conn.execute(
