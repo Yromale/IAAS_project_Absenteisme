@@ -74,6 +74,9 @@ This project is composed of two pipelines:
     cd youtube-data-pipeline
     ```
 
+2. **Install postgreSQL:**
+   Visit the [PostgreSQL]{https://www.postgresql.org/download/} download page and choose the appropriate installer for your operating system
+
 2. **Build and Run Docker Containers:**
 
     ```bash
