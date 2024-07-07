@@ -45,9 +45,9 @@ def main():
 
     try:
         channel_filenames = [
-            'Data/Outdoor Boys_channel_data.csv',
-            'Data/PacificSound3003_channel_data.csv',
-            'Data/I did a thing_channel_data.csv'
+            'Outdoor Boys_channel_data.csv',
+            'PacificSound3003_channel_data.csv',
+            'I did a thing_channel_data.csv'
         ]
 
         for channel_filename in channel_filenames:
@@ -55,9 +55,9 @@ def main():
             insert_channel_data_to_sql(data, channel_filename.split('_')[0])
 
         filenames = [
-            'Data/OutdoorBoys_data.csv',
-            'Data/pacificsound3003_data.csv',
-            'Data/Ididathing_data.csv'
+            'OutdoorBoys_data.csv',
+            'pacificsound3003_data.csv',
+            'Ididathing_data.csv'
         ]
 
         for filename in filenames:
