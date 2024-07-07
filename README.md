@@ -73,11 +73,25 @@ This project is composed of two pipelines:
     git clone https://github.com/Yromale/IAAS_project.git
     cd youtube-data-pipeline
     ```
+2. **Create a environment.env at the root:**
+   ```bash
+    YOUTUBE_API_KEY=your_youtube_api_key
+    DB_USER=your_db_user
+    DB_PASSWORD=your_db_password
+    DB_NAME=your_db_name
+   ```
 
-2. **Install postgreSQL:**
-   Visit the [PostgreSQL]{https://www.postgresql.org/download/} download page and choose the appropriate installer for your operating system
+3. **Install postgreSQL:**
+   Visit the [PostgreSQL](https://www.postgresql.org/download/) download page and choose the appropriate installer for your operating system
 
-2. **Build and Run Docker Containers:**
+4. **Create Database and User:**
+    ```bash
+    CREATE DATABASE your_database;
+    CREATE USER your_db_user WITH PASSWORD your_db_password;
+    GRANT ALL PRIVILEGES ON DATABASE your_database TO your_user;
+    ```
+
+5. **Build and Run Docker Containers:**
 
     ```bash
     docker-compose up --build

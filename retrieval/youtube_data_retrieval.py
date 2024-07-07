@@ -5,12 +5,12 @@ from google.cloud import storage, secretmanager
 from flask import Flask
 from dotenv import load_dotenv
 
-load_dotenv()
+
 
 app = Flask(__name__)
 
-# Secret Manager client
-secret_client = secretmanager.SecretManagerServiceClient()
+# Load environment variables from .env file
+load_dotenv("environment.env")
 
 def access_secret_version(secret_id):
     project_id = os.getenv('PROJECT_ID')
@@ -18,9 +18,21 @@ def access_secret_version(secret_id):
     response = secret_client.access_secret_version(request={"name": secret_name})
     return response.payload.data.decode('UTF-8')
 
-# Retrieve secrets
-API_KEY = access_secret_version('YOUTUBE_API_KEY')
-BUCKET_NAME = access_secret_version('GCS_BUCKET_NAME')
+
+# Check if environment.env file is present
+if os.path.exists("environment.env"):
+    # Load environment variables from .env file
+    load_dotenv("environment.env")
+    API_KEY = os.getenv('YOUTUBE_API_KEY')
+    BUCKET_NAME = os.getenv('GCS_BUCKET_NAME')
+else:
+    # Secret Manager client
+    secret_client = secretmanager.SecretManagerServiceClient()
+
+    # Retrieve secrets
+    API_KEY = access_secret_version('YOUTUBE_API_KEY')
+    BUCKET_NAME = access_secret_version('GCS_BUCKET_NAME')
+
 
 @app.route('/')
 def main():
@@ -35,9 +47,13 @@ def main():
         channel_data.append(get_channel_data(channel_id))
 
         video_data = get_youtube_data(channel_id)
-        filename = f"{channel_name}_data.csv"
+
+        # Create Data folder if it doesn't exist
+        if not os.path.exists('Data'):
+            os.makedirs('Data')
+        filename = f"Data/{channel_name}_data.csv"
         
-        with open(filename, 'w', newline='') as csvfile:
+        with open(filename, 'w', newline='',encoding='utf-8-sig') as csvfile:
             fieldnames = ['videoId', 'title', 'description', 'publishedAt', 'likes', 'views', 'comments']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
@@ -55,8 +71,10 @@ def main():
                         'comments': comments
                     })
         
-        with open(filename, 'r') as file:
-            upload_to_gcs(filename, file.read())
+        # Upload file to Google Cloud Storage if running on GCP
+        if os.getenv('GOOGLE_CLOUD_PROJECT'):
+            with open(filename, 'r') as file:
+                upload_to_gcs(filename, file.read())
     
     save_channel_data(channel_data)
 
@@ -69,6 +87,10 @@ def get_youtube_data(channel_id):
     while url:
         response = requests.get(url)
         result = response.json()
+        if 'error' in result:
+            # Handle API error, e.g., log the error message or raise an exception
+            error_message = result['error']['message']
+            raise Exception(f'YouTube API error: key={API_KEY} channelId={channel_id}0')
         data.extend(result['items'])
         url = result.get('nextPageToken', None)
         if url:
@@ -106,7 +128,7 @@ def get_channel_data(channel_id):
 # Function to save channel data to CSV file
 def save_channel_data(channel_data):
     for i in channel_data:
-        filename = f"{i['channel_name']}_channel_data.csv"
+        filename = f"Data/{i['channel_name']}_channel_data.csv"
         with open(filename, 'w', newline='') as csvfile:
             fieldnames = ['channel_id', 'channel_name', 'description', 'subscriber_count', 'video_count', 'view_count']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -119,8 +141,10 @@ def save_channel_data(channel_data):
                 'video_count': i['video_count'],
                 'view_count': i['view_count']
             })
-        with open(filename, 'r') as file:
-            upload_to_gcs(filename, file.read())
+        # Upload file to Google Cloud Storage if running on GCP
+        if os.getenv('GOOGLE_CLOUD_PROJECT'):
+            with open(filename, 'r') as file:
+                upload_to_gcs(filename, file.read())
             
 # Function to upload file to Google Cloud Storage
 def upload_to_gcs(filename, data):
@@ -128,6 +152,7 @@ def upload_to_gcs(filename, data):
     bucket = client.bucket(BUCKET_NAME)
     blob = bucket.blob(filename)
     blob.upload_from_string(data, content_type='text/csv')
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 8080))

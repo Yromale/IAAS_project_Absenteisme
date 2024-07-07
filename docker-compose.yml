@@ -1,11 +1,4 @@
-version: '3.8'
-
 services:
-  redis:
-    image: redis:latest
-    ports:
-      - "6379:6379"
-
   youtube-data-retrieval:
     build: ./retrieval
     env_file:
@@ -13,7 +6,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./retrieval:/app
+      - data-volume:/app/Data  # Mount the shared volume
 
   data-processing:
     build: ./process
@@ -23,27 +16,3 @@ services:
       - "8081:8080"
     volumes:
       - ./process:/app
-
-  celery-worker:
-    build: .
-    command: celery -A tasks worker --loglevel=info
-    env_file:
-      - environment.env
-    volumes:
-      - .:/app
-    depends_on:
-      - redis
-      - youtube-data-retrieval
-      - data-processing
-
-  celery-beat:
-    build: .
-    command: celery -A tasks beat --loglevel=info
-    env_file:
-      - environment.env
-    volumes:
-      - .:/app
-    depends_on:
-      - redis
-      - youtube-data-retrieval
-      - data-processing
