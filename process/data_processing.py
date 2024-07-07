@@ -33,16 +33,10 @@ DATABASE_URI = (
 )
 
 
-# Create a connection to the Cloud SQL database or local database
-if os.path.exists("environment.env"):
-    DATABASE_URI = (
-        f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@localhost/{DB_NAME}"
-    )
-else:
-    DATABASE_URI = (
-        f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
-        f"@/{DB_NAME}?host=/cloudsql/{CLOUD_SQL_CONNECTION_NAME}"
-    )
+DATABASE_URI = (
+    f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
+    f"@/{DB_NAME}?host=/cloudsql/{CLOUD_SQL_CONNECTION_NAME}"
+)
 
 engine = create_engine(DATABASE_URI)
 
