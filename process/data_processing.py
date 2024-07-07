@@ -5,44 +5,33 @@ from datetime import datetime
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, text
 from flask import Flask
 from dotenv import load_dotenv
+from google.cloud import storage, secretmanager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# Load environment variables from .env file
-load_dotenv("environment.env")
+# Create a Secret Manager client
+secret_client = secretmanager.SecretManagerServiceClient()
 
-# Check if environment.env file is present
-if os.path.exists("environment.env"):
+def access_secret_version(secret_id):
+    project_id = os.getenv('PROJECT_ID')
+    secret_name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
+    response = secret_client.access_secret_version(request={"name": secret_name})
+    return response.payload.data.decode('UTF-8')
 
-    # Load environment variables from .env file
-    load_dotenv("environment.env")
+# Retrieve secrets
+BUCKET_NAME = access_secret_version('GCS_BUCKET_NAME')
+CLOUD_SQL_CONNECTION_NAME = access_secret_version('CLOUD_SQL_CONNECTION_NAME')
+DB_USER = access_secret_version('DB_USER')
+DB_PASSWORD = access_secret_version('DB_PASSWORD')
+DB_NAME = access_secret_version('DB_NAME')
 
-    BUCKET_NAME = os.getenv('GCS_BUCKET_NAME')
-    CLOUD_SQL_CONNECTION_NAME = os.getenv('CLOUD_SQL_CONNECTION_NAME')
-    DB_USER = os.getenv('DB_USER')
-    DB_PASSWORD = os.getenv('DB_PASSWORD')
-    DB_NAME = os.getenv('DB_NAME')
+# Create a connection to the Cloud SQL database
+DATABASE_URI = (
+    f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
+    f"@/{DB_NAME}?host=/cloudsql/{CLOUD_SQL_CONNECTION_NAME}"
+)
 
-else:
-    from google.cloud import storage, secretmanager
-    
-    # Create a Secret Manager client
-    secret_client = secretmanager.SecretManagerServiceClient()
-
-    # Function to access secrets
-    def access_secret_version(secret_id):
-        project_id = os.getenv('PROJECT_ID')
-        secret_name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
-        response = secret_client.access_secret_version(request={"name": secret_name})
-        return response.payload.data.decode('UTF-8')
-
-    # Retrieve secrets
-    BUCKET_NAME = access_secret_version('GCS_BUCKET_NAME')
-    CLOUD_SQL_CONNECTION_NAME = access_secret_version('CLOUD_SQL_CONNECTION_NAME')
-    DB_USER = access_secret_version('DB_USER')
-    DB_PASSWORD = access_secret_version('DB_PASSWORD')
-    DB_NAME = access_secret_version('DB_NAME')
 
 # Create a connection to the Cloud SQL database or local database
 if os.path.exists("environment.env"):
