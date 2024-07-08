@@ -9,18 +9,24 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Secret Manager client
-secret_client = secretmanager.SecretManagerServiceClient()
+try:
+    # Secret Manager client
+    secret_client = secretmanager.SecretManagerServiceClient()
 
-def access_secret_version(secret_id):
-    project_id = os.getenv('PROJECT_ID')
-    secret_name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
-    response = secret_client.access_secret_version(request={"name": secret_name})
-    return response.payload.data.decode('UTF-8')
+    def access_secret_version(secret_id):
+        project_id = os.getenv('PROJECT_ID')
+        secret_name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
+        response = secret_client.access_secret_version(request={"name": secret_name})
+        return response.payload.data.decode('UTF-8')
 
-# Retrieve secrets
-API_KEY = access_secret_version('YOUTUBE_API_KEY')
-BUCKET_NAME = access_secret_version('GCS_BUCKET_NAME')
+    # Retrieve secrets
+    API_KEY = access_secret_version('YOUTUBE_API_KEY')
+    BUCKET_NAME = access_secret_version('GCS_BUCKET_NAME')
+
+except Exception as e:
+    API_KEY = os.getenv('YOUTUBE_API_KEY')
+    BUCKET_NAME = os.getenv('GCS_BUCKET_NAME')
+
 
 @app.route('/')
 def main():
