@@ -10,35 +10,79 @@ from google.cloud import storage, secretmanager
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# Create a Secret Manager client
-secret_client = secretmanager.SecretManagerServiceClient()
+# Define table structures
+metadata = MetaData()
 
-def access_secret_version(secret_id):
-    project_id = os.getenv('PROJECT_ID')
-    secret_name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
-    response = secret_client.access_secret_version(request={"name": secret_name})
-    return response.payload.data.decode('UTF-8')
-
-# Retrieve secrets
-BUCKET_NAME = access_secret_version('GCS_BUCKET_NAME')
-CLOUD_SQL_CONNECTION_NAME = access_secret_version('CLOUD_SQL_CONNECTION_NAME')
-DB_USER = access_secret_version('DB_USER')
-DB_PASSWORD = access_secret_version('DB_PASSWORD')
-DB_NAME = access_secret_version('DB_NAME')
-
-# Create a connection to the Cloud SQL database
-DATABASE_URI = (
-    f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
-    f"@/{DB_NAME}?host=/cloudsql/{CLOUD_SQL_CONNECTION_NAME}"
+video_table = Table(
+    'video', metadata,
+    Column('video_id', String, primary_key=True),
+    Column('title', String),
+    Column('description', String),
+    Column('published_at', DateTime),
+    Column('likes', Integer),
+    Column('views', Integer),
 )
 
-
-DATABASE_URI = (
-    f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
-    f"@/{DB_NAME}?host=/cloudsql/{CLOUD_SQL_CONNECTION_NAME}"
+channel_table = Table(
+    'channel', metadata,
+    Column('channel_id', String, primary_key=True),
+    Column('channel_name', String),
+    Column('subscriber_count', Integer),
+    Column('video_count', Integer),
+    Column('view_count', Integer),
 )
+
+import_task_table = Table(
+    'import_task', metadata,
+    Column('id', Integer, primary_key=True, autoincrement=True),
+    Column('date_start', DateTime),
+    Column('date_end', DateTime),
+    Column('created_videos', Integer),
+    Column('updated_videos', Integer),
+    Column('status', String),
+)
+
+try:
+    # Create a Secret Manager client
+    secret_client = secretmanager.SecretManagerServiceClient()
+
+    def access_secret_version(secret_id):
+        project_id = os.getenv('PROJECT_ID')
+        secret_name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
+        response = secret_client.access_secret_version(request={"name": secret_name})
+        return response.payload.data.decode('UTF-8')
+
+    # Retrieve secrets
+    BUCKET_NAME = access_secret_version('GCS_BUCKET_NAME')
+    CLOUD_SQL_CONNECTION_NAME = access_secret_version('CLOUD_SQL_CONNECTION_NAME')
+    DB_USER = access_secret_version('DB_USER')
+    DB_PASSWORD = access_secret_version('DB_PASSWORD')
+    DB_NAME = access_secret_version('DB_NAME')
+
+    # Create a connection to the Cloud SQL database
+    DATABASE_URI = (
+        f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
+        f"@/{DB_NAME}?host=/cloudsql/{CLOUD_SQL_CONNECTION_NAME}"
+    )
+
+except Exception as e:
+    load_dotenv("environment.env")
+    BUCKET_NAME = os.getenv('GCS_BUCKET_NAME')
+    CLOUD_SQL_CONNECTION_NAME = os.getenv('CLOUD_SQL_CONNECTION_NAME')
+    DB_USER = os.getenv('DB_USER')
+    DB_PASSWORD = os.getenv('DB_PASSWORD')
+    DB_NAME = os.getenv('DB_NAME')
+
+    DATABASE_URI = (
+        f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
+        f"@localhost:5432/{DB_NAME}"
+    )
+
 
 engine = create_engine(DATABASE_URI)
+
+# Check if the tables exist in the database, if not, create them
+metadata.create_all(engine, checkfirst=True)
 
 app = Flask(__name__)
 
