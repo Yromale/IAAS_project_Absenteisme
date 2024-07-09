@@ -2,6 +2,8 @@
 
 This project consists of two main services that retrieve and process YouTube data, store it in Google Cloud Storage (GCS), and then write it to a PostgreSQL database on Google Cloud SQL. The project is designed to be scheduled using Google Cloud Scheduler and uses Docker Compose for local development.
 
+Group Absenteisme - Amory Hervet, Thomas Thierry
+
 ## Table of Contents
 
 - [Overview](#overview)
